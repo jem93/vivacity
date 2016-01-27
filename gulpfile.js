@@ -1,3 +1,4 @@
+// Modules
 var gulp = require('gulp'),
     gutil = require('gulp-util'),
     concat = require('gulp-concat'),
@@ -5,13 +6,10 @@ var gulp = require('gulp'),
     compass = require('gulp-compass'),
     connect = require('gulp-connect');
 
-
-var jsSources,
-    sassSources;
-
-jsSources = ['components/scripts/*.js'];
-sassSources = ['components/sass/style.scss'];
-htmlSources = ['builds/development/*.html']
+// Source files
+var jsSources = ['components/scripts/*.js'],
+    sassSources = ['components/sass/style.scss'],
+    htmlSources = ['builds/development/*.html'];
 
 // Html
 gulp.task('html', function() {
@@ -24,12 +22,13 @@ gulp.task('compass', function() {
   gulp.src(sassSources)
   .pipe(compass({
     sass: 'components/sass',
+    css: 'builds/development/css',
     image: 'builds/development/images',
     style: 'expanded'
   })
   .on('error', gutil.log))
   // having issues writing to the correct directory...
-  .pipe(gulp.dest('builds/development/css'))
+  //.pipe(gulp.dest('builds/development/css'))
   .pipe(connect.reload())
 });
 
@@ -59,7 +58,7 @@ gulp.task('connect', function() {
 });
 
 // Default task
-gulp.task('default', ['html','js', 'compass', 'watch', 'connect'], function() {
+gulp.task('default', ['watch','html','js', 'compass', 'connect'], function() {
   // log to console
   gutil.log("I'm watching you...");
 });
