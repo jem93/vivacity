@@ -5,54 +5,80 @@ var gulp = require('gulp'),
     browserify = require('gulp-browserify'),
     compass = require('gulp-compass'),
     connect = require('gulp-connect');
+    // modules for production only
+    gulpif = require('gulp-if'),
+    minifyHTML = require('gulp-minify-html'),
+    uglify = require('gulp-uglify');
 
-// Source files
-var jsSources = ['components/scripts/*.js'],
-    sassSources = ['components/sass/style.scss'],
-    htmlSources = ['builds/development/*.html'];
+var env,
+    scripts,
+    includes,
+    html,
+    outputDir,
+    sassStyle;
+
+//Set environment
+env = 'development';
+
+if (env === 'development') {
+  outputDir = 'builds/development/';
+  sassStyle = 'expanded';
+} else {
+  outputDir = 'builds/production/';
+  sassStyle = 'compressed';
+} // output directory
+
+//Imports
+scripts = ['components/scripts/script.js'];
+includes = ['components/sass/style.scss'];
+html = ['builds/development/*.html'];
+
 
 // Html
 gulp.task('html', function() {
-  gulp.src(htmlSources)
+  'use strict';
+  gulp.src(html)
+  //add production later
   .pipe(connect.reload())
 });
 
-// Pipes sass files through compass to deal w/prefixes outputs to css
+//Sass includes
 gulp.task('compass', function() {
-  gulp.src(sassSources)
+  gulp.src(includes)
   .pipe(compass({
     sass: 'components/sass',
-    css: 'builds/development/css',
-    image: 'builds/development/images',
-    style: 'expanded'
+    css: outputDir + 'css',
+    image: outputDir + 'images',
+    style: sassStyle,
+    require: ['breakpoint']
   })
   .on('error', gutil.log))
-  // having issues writing to the correct directory...
-  //.pipe(gulp.dest('builds/development/css'))
   .pipe(connect.reload())
 });
 
-
-// Concatenate js files
+// Concatenate scripts
 gulp.task('js', function() {
-  gulp.src(jsSources)
+  'use strict';
+  gulp.src(scripts)
   .pipe(concat('script.js'))
   .pipe(browserify())
-  .pipe(gulp.dest('builds/development/js'))
+  .on('error', gutil.log)
+  .pipe(gulp.dest(outputDir + 'js'))
   .pipe(connect.reload())
 });
 
 // Watch changes to files
 gulp.task('watch', function() {
-  gulp.watch('components/sass/*.scss', ['compass']);
-  gulp.watch(jsSources, ['js']);
-  gulp.watch(htmlSources, ['html']);
+  gulp.watch(['components/sass/modules/*.scss', 'components/sass/*.scss'], ['compass']);
+  gulp.watch(scripts, ['js']);
+  gulp.watch(html, ['html']);
 });
 
 // Live Reload server
 gulp.task('connect', function() {
+  'use strict';
   connect.server({
-    root: 'builds/development/',
+    root: outputDir,
     livereload: true
   });
 });
@@ -60,5 +86,5 @@ gulp.task('connect', function() {
 // Default task
 gulp.task('default', ['watch','html','js', 'compass', 'connect'], function() {
   // log to console
-  gutil.log("I'm watching you...");
+  gutil.log("Ready.");
 });
